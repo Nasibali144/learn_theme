@@ -1,42 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:learn_theme/services/db_service.dart';
-import 'package:learn_theme/services/theme_service.dart';
 import 'pages/home_page.dart';
-
-ThemeService controllerTheme = ThemeService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DBService.init();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
+  MyApp({Key? key}) : super(key: key);
 
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-
-  @override
-  void initState() {
-    super.initState();
-    controllerTheme.addListener(() {
-      setState(() {});
-    });
-  }
+  final box = Hive.box(DBService.dbName);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: controllerTheme.mode,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return ValueListenableBuilder(
+      valueListenable: box.listenable(),
+      builder: (context, _, child) {
+        return MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: box.get("isLight", defaultValue: true) ? ThemeMode.light : ThemeMode.dark,
+          home: const MyHomePage(title: 'Flutter Demo Home Page'),
+        );
+      }
     );
   }
 }
